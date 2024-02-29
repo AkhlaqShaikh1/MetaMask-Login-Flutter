@@ -151,81 +151,101 @@ class _MetaMaskState extends State<MetaMask> {
         body: Container(
           constraints: const BoxConstraints.expand(),
           padding: const EdgeInsets.all(12.0),
-          child: Column(children: [
-            Container(
-              child: GestureDetector(
-                onTap: () {
-                  context
-                      .read<MetaMaskProvider>()
-                      .connect(_w3mService, context);
-                },
-                child: Text("Connect"),
+          child: Column(
+            children: [
+              Container(
+                child: GestureDetector(
+                  onTap: () {
+                    context
+                        .read<MetaMaskProvider>()
+                        .connect(_w3mService, context);
+                  },
+                  child: Text("Connect"),
+                ),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(12.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    // status = false;
-                    provider.disconnect(_w3mService);
-                  });
-                  if (context.mounted) {
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      // status = false;
+                      provider.disconnect(_w3mService);
+                    });
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Disconnected from wallet"),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Disconnect Wallet'),
+                ),
+              ),
+              SizedBox(height: 12.0),
+              ElevatedButton(
+                child: const Text('Test'),
+                onPressed: () async {
+                  var message =
+                      await provider.sendTransaction(_w3mService, 0.1);
+                  if (message == "Transaction sent successfully!" &&
+                      context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Disconnected from wallet"),
+                      SnackBar(
+                        content: Text(message),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
                         backgroundColor: Colors.red,
                       ),
                     );
                   }
                 },
-                child: const Text('Disconnect Wallet'),
               ),
-            ),
-            SizedBox(height: 12.0),
-            ElevatedButton(
-              child: const Text('Test'),
-              onPressed: () async {
-                var message = await context
-                    .read<MetaMaskProvider>()
-                    .sendTransaction(_w3mService, 0.1);
-                if (message == "Transaction sent successfully!" &&
-                    context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(message),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } else if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(message),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-            ),
-            provider.isConnected
-                ? Text(
-                    context.read<MetaMaskProvider>().address!,
-                    style: const TextStyle(fontSize: 20),
-                  )
-                : const Text("Not Connected"),
-            SizedBox(height: 12.0),
-            provider.isConnected
-                ? GestureDetector(
-                    onTap: () {
-                      context.read<MetaMaskProvider>().getMethods(_w3mService);
-                    },
-                    child: Text(
-                      "Get Methods",
+              provider.isConnected
+                  ? Text(
+                      context.read<MetaMaskProvider>().address!,
                       style: const TextStyle(fontSize: 20),
-                    ),
-                  )
-                : const Text("No Methods"),
-          ]),
+                    )
+                  : const Text("Not Connected"),
+              SizedBox(height: 12.0),
+              provider.isConnected
+                  ? GestureDetector(
+                      onTap: () {
+                        context
+                            .read<MetaMaskProvider>()
+                            .getMethods(_w3mService);
+                      },
+                      child: Text(
+                        "Get Methods",
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    )
+                  : const Text("No Methods"),
+              ElevatedButton(
+                onPressed: () async {
+                  var message = await context
+                      .read<MetaMaskProvider>()
+                      .perSign(_w3mService);
+                  print(message);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                },
+                child: Text("Sign Message"),
+              ),
+            ],
+          ),
         ),
       ),
     );

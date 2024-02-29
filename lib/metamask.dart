@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
 // import 'package:web3modal_flutter/pages/select_network_page.dart';
@@ -11,7 +13,7 @@ class MetaMaskProvider extends ChangeNotifier {
   sendTransaction(W3MService service, amount) async {
     await service.launchConnectedWallet();
     try {
-      await service.web3App!.request(
+      var response = await service.web3App!.request(
         topic: service.session!.topic.toString(),
         chainId: 'eip155:11155111',
         request: SessionRequestParams(
@@ -25,6 +27,7 @@ class MetaMaskProvider extends ChangeNotifier {
           ],
         ),
       );
+      print(response);
       return "Transaction sent successfully!";
     } on JsonRpcError catch (e) {
       return e.toJson()['message'];
@@ -66,5 +69,65 @@ class MetaMaskProvider extends ChangeNotifier {
   getMethods(W3MService service) {
     print(service.getApprovedMethods());
     // return service.getApprovedMethods();
+  }
+
+  signMessage(W3MService service) async {
+    var messagePram = {
+      "domain": {
+        "chainId": 11155111,
+        "name": "Commercio",
+      },
+      "message": {
+        "content": "Test",
+        "version": "1",
+        "from": {
+          "name": "Akhlaq shaikh",
+          "address": service.session!.address.toString(),
+        }
+      }
+    };
+    print(messagePram);
+    await service.launchConnectedWallet();
+    try {
+      var response = await service.web3App!.request(
+        topic: service.session!.topic.toString(),
+        chainId: 'eip155:11155111',
+        request: SessionRequestParams(
+          method: 'eth_signTypedData_v4',
+          params: [service.session!.address, jsonEncode(messagePram)],
+        ),
+      );
+      print(response);
+      return response;
+    } on JsonRpcError catch (e) {
+      return e.toJson()['message'];
+    } on Exception catch (e) {
+      return e.toString();
+    }
+  }
+
+  perSign(W3MService service) async {
+    await service.launchConnectedWallet();
+    var message = "Commercio";
+
+    try {
+      var response = await service.web3App!.request(
+        topic: service.session!.topic.toString(),
+        chainId: 'eip155:11155111',
+        request: SessionRequestParams(
+          method: 'personal_sign',
+          params: [
+            "Commercio",
+            service.session!.address,
+          ],
+        ),
+      );
+      print(response);
+      return "Signed";
+    } on JsonRpcError catch (e) {
+      return e.toJson()['message'];
+    } on Exception catch (e) {
+      return e.toString();
+    }
   }
 }
